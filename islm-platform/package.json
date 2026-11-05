@@ -1,0 +1,29 @@
+{
+  "name": "islm-simulator",
+  "version": "3.0.0",
+  "description": "IS-LM 曲线交互式仿真实验平台 - 宏观经济学课程辅助教学工具",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "server": "node --watch server/app.js",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "axios": "^1.7.7",
+    "bcryptjs": "^2.4.3",
+    "dotenv": "^17.4.2",
+    "echarts": "^5.5.1",
+    "element-plus": "^2.8.4",
+    "express": "^5.2.1",
+    "jsonwebtoken": "^9.0.3",
+    "mysql2": "^3.24.4",
+    "vue": "^3.5.12",
+    "ws": "^8.21.3"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-vue": "^5.1.4",
+    "vite": "^5.4.8"
+  }
+}

@@ -1,0 +1,9 @@
+# 构建/运行镜像时排除的文件
+node_modules
+dist
+.env
+.git
+.trae
+*.log
+Dockerfile
+docker-compose.yml

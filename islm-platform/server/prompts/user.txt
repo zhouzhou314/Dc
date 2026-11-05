@@ -1,0 +1,24 @@
+【本次请求】
+- 目标层级 target_level：{{target_level}}
+- 触发方式 trigger_type：{{trigger_type}}
+- 学生困惑描述：{{student_confusion}}
+
+【题目信息】
+- 题目ID：{{question_id}}
+- 章节：{{chapter_name}}
+- 题型：{{question_type}}
+- 题干：{{question_stem}}
+- 选项：{{question_options}}
+- 标准答案与官方解析：{{official_solution}}
+
+【学生作答情况】
+- 已尝试次数：{{attempt_count}}
+- 最近一次作答：{{student_answer}}
+- 判定结果：{{judge_result}}
+- 已解锁层级：{{unlocked_levels}}
+
+【知识库检索结果（唯一允许引用的外部知识来源）】
+{{rag_context}}
+
+【输出要求】
+严格按 System Prompt 的层级铁律与JSON格式，仅输出 target_level={{target_level}} 对应内容。

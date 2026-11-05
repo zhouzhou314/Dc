@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>经济舵手 · Macro Pilot</title>
+<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+
+<!-- ===================== 开始界面 ===================== -->
+<div id="start-screen">
+  <div class="start-box paper-note">
+    <h1>🛞 经济舵手 <span class="en">Macro Pilot</span></h1>
+    <p class="subtitle">—— 宏观经济政策模拟 · 经济学本科生教学 Demo ——</p>
+    <ul class="feature-list">
+      <li>🎓 两种模式：学习模式（先做题再出手） / 沙盘模式（免做题自由试验）</li>
+      <li>📉 连续时间线：2023 Q4 → 2027 Q1，共 14 个季度，完整经历一轮经济周期</li>
+      <li>🃏 44 张政策卡牌：财政 / 货币 / 产业（中国特供）/ 贸易四大工具箱</li>
+      <li>🔍 传导演示：政策落地即播放六步链条动画——冲击注入→曲线移动→均衡重解→物价→就业→部门反馈，数值实时滚动</li>
+      <li>📊 动态模型：IS-LM、AD-AS、菲利普斯曲线实时动画推演</li>
+      <li>🧠 因素链条：点击传导链节点，弹出公式推导与教材出处</li>
+    </ul>
+    <div class="mode-row">
+      <button class="mode-btn" id="btn-learn">
+        <span class="mb-icon">🎓</span>
+        <b>学习模式</b>
+        <span class="mb-desc">每张政策先做题，答对全额生效、答错减半；传导演示附公式推导</span>
+      </button>
+      <button class="mode-btn" id="btn-sandbox">
+        <span class="mb-icon">🧪</span>
+        <b>沙盘模式</b>
+        <span class="mb-desc">免做题、政策即时全额生效，每季可执行 5 项，自由试验模型</span>
+      </button>
+    </div>
+    <p class="tip">建议使用 Chrome / Edge 浏览器，窗口宽度 ≥ 1440px</p>
+  </div>
+</div>
+
+<!-- ===================== 主界面 ===================== -->
+<div id="app" class="hidden">
+
+  <!-- ① 顶部：全局导航与核心指标盘 -->
+  <header id="topbar">
+    <div class="logo">🛞 <b>经济舵手</b><span class="en">Macro Pilot</span></div>
+    <div id="kpi-cards"><!-- KPI 卡片由 JS 生成 --></div>
+    <div class="time-controls">
+      <div id="quarter-label">2023 Q4</div>
+      <button id="btn-anim-speed" title="切换动画速度">🐢 慢速</button>
+      <button id="btn-wrongbook" title="错题本">📒 错题本</button>
+      <button id="btn-end-quarter">结束本季度 ▶</button>
+    </div>
+  </header>
+
+  <div id="main-grid">
+
+    <!-- ② 左侧：政策工具箱 -->
+    <aside id="toolbox">
+      <h2>🧰 政策工具箱</h2>
+      <div id="drawer-container"><!-- 四个抽屉由 JS 生成 --></div>
+      <div id="pending-box">
+        <h3>本季度已执行政策 <span id="pending-count">0 / 3</span></h3>
+        <ul id="pending-list"></ul>
+      </div>
+    </aside>
+
+    <!-- ③ 中央：动态经济全景与图表区 -->
+    <section id="center">
+      <div id="city-map" class="panel"><!-- 手绘城市地图由 JS 生成 --></div>
+      <div id="timeline" class="panel"><!-- 时间轴由 JS 生成 --></div>
+      <div id="chart-row">
+        <div class="chart-box"><h3>GDP 构成堆积（万亿）</h3><svg id="chart-gdp"></svg></div>
+        <div class="chart-box"><h3>IS-LM 模型</h3><svg id="chart-islm"></svg></div>
+        <div class="chart-box"><h3>AD-AS 模型</h3><svg id="chart-adas"></svg></div>
+        <div class="chart-box"><h3>菲利普斯曲线</h3><svg id="chart-phillips"></svg></div>
+      </div>
+    </section>
+
+    <!-- ④ 右侧：资讯与反馈区 -->
+    <aside id="feed">
+      <div class="panel" id="news-panel"><h3>📰 新闻与事件</h3><ul id="news-list"></ul></div>
+      <div class="panel" id="firm-panel"><h3>🏭 企业动态</h3><ul id="firm-list"></ul></div>
+      <div class="panel" id="expect-panel">
+        <h3>🔮 公众预期</h3>
+        <div id="expect-content"></div>
+      </div>
+      <div class="panel" id="advisor-panel">
+        <h3>🧑‍🏫 经济顾问</h3>
+        <div id="advisor-note" class="paper-note small"></div>
+      </div>
+    </aside>
+
+    <!-- ⑤ 底部：教学闭环与结算区 -->
+    <footer id="bottom">
+      <div class="panel" id="chain-panel">
+        <h3>🔗 因素链条（点击节点看公式推导）
+          <select id="chain-category">
+            <option value="fiscal">财政政策传导</option>
+            <option value="monetary">货币政策传导</option>
+            <option value="trade">贸易政策传导</option>
+          </select>
+        </h3>
+        <div id="chain-container"></div>
+      </div>
+      <div class="panel" id="advice-panel"><h3>📌 学习建议</h3><ul id="advice-list"></ul></div>
+      <div class="panel" id="radar-panel"><h3>🎯 本局评分</h3><svg id="radar-svg"></svg></div>
+      <div class="panel" id="achv-panel"><h3>🏅 成就徽章</h3><ul id="achv-list"></ul></div>
+    </footer>
+  </div>
+</div>
+
+<!-- ===================== ⑥ 弹窗层 ===================== -->
+
+<!-- 做题弹窗（手绘便签纸风格） -->
+<div id="quiz-modal" class="modal-layer hidden">
+  <div class="paper-note quiz-paper">
+    <div class="quiz-head"><span id="quiz-card-name"></span><span id="quiz-stamp"></span></div>
+    <div id="quiz-question"></div>
+    <div id="quiz-options"></div>
+    <div id="quiz-explain" class="hidden"></div>
+    <div class="quiz-foot">
+      <span id="quiz-chapter"></span>
+      <button id="quiz-close" class="hidden">关闭</button>
+    </div>
+  </div>
+</div>
+
+<!-- 知识卡弹窗（因素链条节点） -->
+<div id="knowledge-modal" class="modal-layer hidden">
+  <div class="paper-note quiz-paper">
+    <h3 id="know-title"></h3>
+    <div id="know-formula" class="formula-box"></div>
+    <div id="know-text"></div>
+    <div class="quiz-foot"><span id="know-chapter"></span><button id="know-close">关闭</button></div>
+  </div>
+</div>
+
+<!-- 事件新闻卡弹窗 -->
+<div id="event-modal" class="modal-layer hidden">
+  <div class="paper-note newspaper">
+    <h3 id="event-title"></h3>
+    <p id="event-desc"></p>
+    <p id="event-effect"></p>
+    <button id="event-close">知道了</button>
+  </div>
+</div>
+
+<!-- 错题本弹窗 -->
+<div id="wrongbook-modal" class="modal-layer hidden">
+  <div class="paper-note quiz-paper">
+    <h3>📒 错题本</h3>
+    <div id="wrongbook-list"></div>
+    <div class="quiz-foot"><span>答对同类新题可移出</span><button id="wrongbook-close">关闭</button></div>
+  </div>
+</div>
+
+<!-- 结算弹窗 -->
+<div id="final-modal" class="modal-layer hidden">
+  <div class="paper-note quiz-paper final-paper">
+    <h3>🏁 14 个季度执舵结束！</h3>
+    <div id="final-summary"></div>
+    <div class="quiz-foot"><button id="final-restart">再来一局 🔄</button></div>
+  </div>
+</div>
+
+<!-- 传导演示弹窗（六步链条动画） -->
+<div id="transmission-modal" class="modal-layer hidden">
+  <div class="paper-note trans-paper">
+    <h3 id="trans-title">🔍 传导演示</h3>
+    <div id="trans-chain"></div>
+    <div class="trans-foot">
+      <span class="trans-hint">每个节点即时重解均衡，数值实时滚动</span>
+      <div>
+        <button id="trans-skip">跳过动画 ⏩</button>
+        <button id="trans-done" class="hidden">确认效果 ▶</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- 轻提示层 -->
+<div id="toast-layer"></div>
+
+<script src="js/data.js"></script>
+<script src="js/models.js"></script>
+<script src="js/charts.js"></script>
+<script src="js/quiz.js"></script>
+<script src="js/game.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

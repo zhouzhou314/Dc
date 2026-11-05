@@ -1,0 +1,450 @@
+/* =========================================================
+   经济舵手 · Macro Pilot 样式表（游戏一 · 移植版）
+   ---------------------------------------------------------
+   来源：D:\HZYJ\game1\css\style.css（纯 HTML 单机版）
+   隔离原因：
+     1. 原样式表直接作用于 body / html / * 等全局选择器，
+        嵌入 Vue 站点后会污染整个页面（背景、字体、overflow、滚动条等）；
+     2. 原 DOM 大量由 JS 动态生成，scoped 样式无法命中，
+        因此统一用 .game1-view 前缀做命名空间隔离；
+     3. 原 #app / #start-screen 用 100vh 铺满视口，
+        嵌入后改为 100%（高度由 .game1-stage 舞台容器给出）。
+   规则：所有选择器均以 .game1-view 开头；@keyframes 名字保持原样。
+   设计基调：深色科技风仪表盘（数据区） + 手绘卡通风（交互区）
+   ========================================================= */
+
+/* ---------- ① 全局变量与重置（变量限定在游戏容器内） ---------- */
+.game1-view {
+  /* 深色仪表盘配色 */
+  --bg:        #0c1322;   /* 页面底色：深藏青 */
+  --panel:     #131d33;   /* 面板底色 */
+  --panel2:    #182645;   /* 面板浅一档 */
+  --line:      #24365e;   /* 边框线 */
+  --text:      #d9e4f7;   /* 主文字 */
+  --dim:       #7d8fb5;   /* 次要文字 */
+  --accent:    #3fd6c2;   /* 高亮青（数据涨） */
+  --accent2:   #4da3ff;   /* 高亮蓝 */
+  --warn:      #ffb454;   /* 警示橙 */
+  --bad:       #ff6b7a;   /* 警示红（数据跌） */
+
+  /* 手绘纸色系 */
+  --paper:     #fdf6e0;   /* 便签纸米白 */
+  --paper2:    #f7ecd2;   /* 牛皮纸 */
+  --ink:       #3a3226;   /* 手写墨色 */
+  --redpen:    #d9534f;   /* 红笔批注 */
+
+  /* 手写字体（中文楷体优先） */
+  --hand: "Kaiti SC", "KaiTi", "STKaiti", "楷体", "Comic Sans MS", cursive;
+  --mono: "Consolas", "JetBrains Mono", monospace;
+
+  /* 原 body 的排版属性移到容器上（背景与尺寸见 .game1-stage） */
+  color: var(--text);
+  font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+  font-size: 14px;
+}
+
+.game1-view * { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* 深色游戏舞台：承载原 body 的背景与溢出裁剪（高度由 Game1View 给出） */
+.game1-view .game1-stage {
+  background: var(--bg);
+  background-image: radial-gradient(ellipse at 50% -20%, #16233f 0%, var(--bg) 60%);
+  overflow: hidden;
+}
+
+.game1-view .hidden { display: none !important; }
+.game1-view h2, .game1-view h3 { font-weight: 600; }
+.game1-view ul { list-style: none; }
+.game1-view button { cursor: pointer; font-family: inherit; }
+
+/* =========================================================
+   开始界面
+   ========================================================= */
+.game1-view #start-screen {
+  height: 100%; display: flex; align-items: center; justify-content: center;
+}
+.game1-view #start-screen .start-box { max-width: 640px; padding: 40px 48px; }
+.game1-view #start-screen h1 { font-size: 40px; color: var(--ink); font-family: var(--hand); }
+.game1-view #start-screen h1 .en { font-size: 18px; color: #8a7f66; margin-left: 8px; }
+.game1-view #start-screen .subtitle { color: #6f6650; margin: 8px 0 18px; font-family: var(--hand); }
+.game1-view .feature-list li {
+  color: var(--ink); margin: 9px 0; font-size: 15px; font-family: var(--hand);
+  padding-left: 4px;
+}
+.game1-view #btn-start {
+  margin-top: 22px; padding: 12px 38px; font-size: 18px;
+  background: var(--accent2); color: #fff; border: none; border-radius: 10px;
+  box-shadow: 0 4px 0 #2b6cb0; transition: transform .1s;
+}
+.game1-view #btn-start:hover { transform: translateY(-2px); }
+.game1-view #start-screen .tip { margin-top: 14px; font-size: 12px; color: #9a8f75; }
+
+/* =========================================================
+   主布局：上（顶栏）- 中（左 中 右三栏）- 下（底栏）
+   ========================================================= */
+.game1-view #app { height: 100%; display: flex; flex-direction: column; }
+
+.game1-view #main-grid {
+  flex: 1; min-height: 0;
+  display: grid;
+  grid-template-columns: 252px 1fr 268px;
+  grid-template-rows: 1fr 190px;
+  grid-template-areas: "left center right" "bottom bottom bottom";
+  gap: 8px; padding: 8px;
+}
+
+/* ---------- ① 顶部 KPI 指标盘 ---------- */
+.game1-view #topbar {
+  height: 78px; display: flex; align-items: center; gap: 14px;
+  padding: 0 14px; background: var(--panel);
+  border-bottom: 1px solid var(--line);
+}
+.game1-view .logo { font-size: 20px; white-space: nowrap; }
+.game1-view .logo b { color: var(--accent); }
+.game1-view .logo .en { font-size: 12px; color: var(--dim); margin-left: 6px; }
+
+.game1-view #kpi-cards { flex: 1; display: flex; gap: 10px; justify-content: center; }
+.game1-view .kpi-card {
+  min-width: 118px; background: var(--panel2); border: 1px solid var(--line);
+  border-radius: 8px; padding: 7px 10px 5px;
+}
+.game1-view .kpi-card .k-name { font-size: 11px; color: var(--dim); }
+.game1-view .kpi-card .k-val  { font-size: 19px; font-family: var(--mono); font-weight: 700; }
+.game1-view .kpi-card .k-delta { font-size: 11px; margin-left: 5px; font-family: var(--mono); }
+.game1-view .kpi-card .k-delta.up   { color: var(--accent); }
+.game1-view .kpi-card .k-delta.down { color: var(--bad); }
+.game1-view .kpi-card .k-delta.flat { color: var(--dim); }
+.game1-view .kpi-card svg { display: block; margin-top: 2px; }
+
+.game1-view .time-controls { display: flex; align-items: center; gap: 8px; }
+.game1-view #quarter-label {
+  font-size: 20px; font-weight: 700; color: var(--accent);
+  font-family: var(--mono); background: var(--panel2);
+  border: 1px solid var(--line); border-radius: 8px; padding: 6px 14px;
+}
+.game1-view .time-controls button {
+  background: var(--panel2); color: var(--text); border: 1px solid var(--line);
+  border-radius: 8px; padding: 8px 12px; font-size: 13px; transition: .15s;
+}
+.game1-view .time-controls button:hover { border-color: var(--accent2); color: var(--accent2); }
+.game1-view #btn-end-quarter {
+  background: var(--accent2); color: #fff; border: none; font-weight: 600;
+  box-shadow: 0 3px 0 #2b6cb0;
+}
+.game1-view #btn-end-quarter:hover { color: #fff; filter: brightness(1.1); }
+
+/* ---------- 通用面板 ---------- */
+.game1-view .panel {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  padding: 10px 12px; overflow: hidden auto;
+}
+.game1-view .panel h3 { font-size: 13px; color: var(--dim); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+
+/* ---------- ② 左侧：政策工具箱 ---------- */
+.game1-view #toolbox { grid-area: left; display: flex; flex-direction: column; overflow: hidden auto; }
+.game1-view #toolbox h2 { font-size: 15px; color: var(--accent); margin-bottom: 8px; }
+.game1-view .drawer { border: 1px solid var(--line); border-radius: 8px; margin-bottom: 8px; background: var(--panel2); }
+.game1-view .drawer-head {
+  display: flex; justify-content: space-between; align-items: center;
+  padding: 9px 10px; cursor: pointer; user-select: none; font-size: 14px;
+}
+.game1-view .drawer-head:hover { color: var(--accent2); }
+.game1-view .drawer-head .cnt { font-size: 11px; color: var(--dim); }
+.game1-view .drawer-body { display: none; padding: 4px 8px 10px; }
+.game1-view .drawer.open .drawer-body { display: block; }
+
+/* 手绘政策卡：歪斜圆角 + 纸色底 + 悬停微转 */
+.game1-view .policy-card {
+  position: relative;
+  background: var(--paper); color: var(--ink);
+  border: 2px solid #4a4032;
+  /* 用不对称圆角模拟手绘抖动线条 */
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  padding: 8px 10px; margin: 7px 2px; cursor: pointer;
+  font-family: var(--hand); font-size: 14px;
+  box-shadow: 2px 3px 6px rgba(0,0,0,.35);
+  transition: transform .15s;
+}
+.game1-view .policy-card:nth-child(odd)  { transform: rotate(-1.2deg); }
+.game1-view .policy-card:nth-child(even) { transform: rotate(1deg); }
+.game1-view .policy-card:hover { transform: rotate(0) scale(1.04); z-index: 2; }
+.game1-view .policy-card .pc-icon { margin-right: 5px; }
+.game1-view .policy-card .pc-sub { display: block; font-size: 11px; color: #8a7f66; margin-top: 2px; }
+.game1-view .policy-card.disabled { opacity: .45; pointer-events: none; }
+.game1-view .policy-card .pc-badge {
+  position: absolute; right: 8px; top: 6px; font-size: 11px;
+  background: var(--warn); color: #5c3a00; border-radius: 6px; padding: 1px 6px;
+}
+
+/* 已选政策列表 */
+.game1-view #pending-box { margin-top: auto; border-top: 1px dashed var(--line); padding-top: 8px; }
+.game1-view #pending-box h3 { font-size: 13px; color: var(--dim); margin-bottom: 6px; }
+.game1-view #pending-count { color: var(--accent); }
+.game1-view #pending-list li {
+  display: flex; justify-content: space-between; align-items: center;
+  background: var(--panel2); border: 1px solid var(--line); border-radius: 6px;
+  padding: 5px 8px; margin-bottom: 5px; font-size: 13px;
+}
+.game1-view #pending-list li.half { border-color: var(--warn); }
+.game1-view #pending-list .remove-btn { color: var(--bad); background: none; border: none; font-size: 14px; }
+
+/* ---------- ③ 中央：地图 + 时间轴 + 图表 ---------- */
+.game1-view #center { grid-area: center; display: flex; flex-direction: column; gap: 8px; min-width: 0; }
+.game1-view #city-map { flex: 0 0 218px; padding: 0; overflow: hidden; position: relative; }
+.game1-view #city-map svg { width: 100%; height: 100%; display: block; }
+
+.game1-view #timeline {
+  flex: 0 0 52px; display: flex; align-items: center; gap: 4px; overflow-x: auto;
+}
+.game1-view .tl-slot {
+  flex: 0 0 58px; text-align: center; padding: 5px 0; border-radius: 6px;
+  background: var(--panel2); border: 1px solid var(--line);
+  font-family: var(--mono); font-size: 11px; color: var(--dim); cursor: pointer;
+}
+.game1-view .tl-slot.done { color: var(--text); }
+.game1-view .tl-slot.cur { border-color: var(--accent); color: var(--accent); font-weight: 700; box-shadow: 0 0 8px rgba(63,214,194,.35); }
+.game1-view .tl-slot:hover { border-color: var(--accent2); }
+
+.game1-view #chart-row { flex: 1; display: grid; grid-template-columns: 1.25fr 1fr 1fr 1fr; gap: 8px; min-height: 0; }
+.game1-view .chart-box {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  padding: 8px 10px 4px; display: flex; flex-direction: column; min-width: 0;
+}
+.game1-view .chart-box h3 { font-size: 12px; color: var(--dim); margin-bottom: 4px; }
+.game1-view .chart-box svg { flex: 1; width: 100%; min-height: 0; }
+.game1-view .chart-box svg text { fill: var(--dim); font-size: 10px; }
+.game1-view .chart-box .legend { display: flex; gap: 10px; font-size: 11px; color: var(--dim); padding: 2px 0; }
+.game1-view .legend i { display: inline-block; width: 10px; height: 10px; border-radius: 2px; margin-right: 3px; vertical-align: -1px; }
+
+/* ---------- ④ 右侧：资讯反馈 ---------- */
+.game1-view #feed { grid-area: right; display: flex; flex-direction: column; gap: 8px; min-height: 0; }
+.game1-view #news-panel { flex: 1.2; }
+.game1-view #firm-panel { flex: 1; }
+.game1-view #expect-panel, .game1-view #advisor-panel { flex: 0 0 auto; }
+.game1-view #news-list li, .game1-view #firm-list li, .game1-view #advice-list li {
+  font-size: 12.5px; line-height: 1.45; padding: 5px 2px;
+  border-bottom: 1px dashed var(--line); color: var(--text);
+}
+.game1-view #news-list li .tag { font-size: 10px; padding: 1px 5px; border-radius: 4px; margin-right: 5px; }
+.game1-view .tag.demand { background: #2b4a7a; }
+.game1-view .tag.supply { background: #7a4a2b; }
+.game1-view .tag.policy { background: #2b7a5f; }
+.game1-view .tag.mixed { background: #5a2b7a; }
+.game1-view #news-list li .time, .game1-view #firm-list li .time { color: var(--dim); font-size: 10px; margin-left: 5px; font-family: var(--mono); }
+
+.game1-view #expect-content .exp-bar { height: 10px; background: var(--panel2); border-radius: 5px; overflow: hidden; margin: 6px 0; }
+.game1-view #expect-content .exp-bar i { display: block; height: 100%; background: linear-gradient(90deg, var(--accent), var(--bad)); transition: width .6s; }
+.game1-view #expect-content .exp-txt { font-size: 12px; color: var(--dim); line-height: 1.5; }
+
+/* 顾问便签：手绘纸 + 胶带 */
+.game1-view #advisor-note.small { padding: 12px 14px 10px; font-size: 13.5px; line-height: 1.6; }
+
+/* =========================================================
+   ⑤ 底部：教学闭环与结算
+   ========================================================= */
+.game1-view #bottom { grid-area: bottom; display: grid; grid-template-columns: 1.6fr 1fr .9fr .9fr; gap: 8px; min-height: 0; }
+.game1-view #chain-panel { overflow-x: auto; }
+.game1-view #chain-container { display: flex; align-items: center; gap: 6px; margin-top: 14px; }
+
+/* 链条节点：手绘圆角框，可点击 */
+.game1-view .chain-node {
+  flex: 0 0 auto; background: var(--paper2); color: var(--ink);
+  border: 2px solid #5c5040; font-family: var(--hand); font-size: 13px;
+  border-radius: 155px 12px 145px 12px / 12px 145px 12px 155px;
+  padding: 7px 12px; cursor: pointer; text-align: center;
+  box-shadow: 1px 2px 4px rgba(0,0,0,.3); transition: .15s;
+}
+.game1-view .chain-node:hover { transform: scale(1.06) rotate(-1deg); background: #fff8e0; }
+.game1-view .chain-node.active { background: #fff3b0; border-color: var(--redpen); }
+.game1-view .chain-arrow { flex: 0 0 auto; color: var(--dim); font-size: 18px; }
+.game1-view .chain-arrow.hand { color: #9a8f75; }
+
+.game1-view #advice-list li { color: var(--text); }
+.game1-view #advice-list li::before { content: "✎ "; color: var(--redpen); }
+.game1-view #radar-svg { width: 100%; height: calc(100% - 24px); }
+.game1-view #achv-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.game1-view .achv {
+  font-size: 12px; padding: 5px 9px; border-radius: 8px;
+  background: var(--panel2); border: 1px solid var(--line); color: var(--dim);
+}
+.game1-view .achv.on { background: #3a2f10; border-color: var(--warn); color: var(--warn); }
+
+/* =========================================================
+   手绘便签纸通用样式（做题卡 / 知识卡 / 新闻卡）
+   ========================================================= */
+.game1-view .paper-note {
+  background:
+    repeating-linear-gradient(transparent, transparent 27px, rgba(160,140,90,.18) 28px), /* 横格线 */
+    var(--paper);
+  color: var(--ink); font-family: var(--hand);
+  border: 2px solid #4a4032;
+  border-radius: 255px 15px 225px 15px / 15px 225px 15px 255px;
+  box-shadow: 0 10px 40px rgba(0,0,0,.55);
+  position: relative;
+}
+.game1-view .paper-note::before { /* 顶部胶带 */
+  content: ""; position: absolute; top: -12px; left: 50%; transform: translateX(-50%) rotate(-2deg);
+  width: 90px; height: 22px; background: rgba(255, 214, 102, .55);
+  border-left: 1px dashed rgba(0,0,0,.15); border-right: 1px dashed rgba(0,0,0,.15);
+}
+
+/* ---------- ⑥ 弹窗层 ---------- */
+.game1-view .modal-layer {
+  position: fixed; inset: 0; background: rgba(4, 8, 18, .66);
+  display: flex; align-items: center; justify-content: center; z-index: 100;
+  backdrop-filter: blur(2px);
+}
+.game1-view .quiz-paper { width: 560px; max-width: 92vw; padding: 26px 30px 16px; animation: pop .25s ease; }
+@keyframes pop { from { transform: scale(.85) rotate(-1.5deg); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+.game1-view .quiz-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+.game1-view .quiz-head #quiz-card-name { font-size: 17px; font-weight: 700; }
+.game1-view #quiz-stamp { font-size: 15px; font-family: var(--hand); }
+.game1-view #quiz-stamp.ok  { color: #2e7d32; border: 2px solid #2e7d32; border-radius: 8px; padding: 2px 8px; transform: rotate(-4deg); }
+.game1-view #quiz-stamp.no  { color: var(--redpen); border: 2px solid var(--redpen); border-radius: 8px; padding: 2px 8px; transform: rotate(3deg); }
+
+.game1-view #quiz-question { font-size: 15.5px; line-height: 1.7; margin-bottom: 14px; white-space: pre-line; }
+.game1-view #quiz-question .num { font-family: var(--mono); }
+
+.game1-view .quiz-opt {
+  display: block; width: 100%; text-align: left; margin: 7px 0; padding: 9px 12px;
+  background: rgba(255,255,255,.5); border: 1.5px solid #6b5c44; border-radius: 10px;
+  font-family: var(--hand); font-size: 14.5px; color: var(--ink); transition: .12s;
+}
+.game1-view .quiz-opt:hover { background: #fff3b0; transform: translateX(4px); }
+.game1-view .quiz-opt.right { background: #d9f2d9; border-color: #2e7d32; }
+.game1-view .quiz-opt.wrong { background: #f8dcdc; border-color: var(--redpen); }
+.game1-view .quiz-opt:disabled { cursor: default; }
+
+.game1-view #quiz-explain {
+  margin-top: 12px; padding: 10px 12px; background: #f3ead0; border-left: 3px solid var(--redpen);
+  font-size: 13.5px; line-height: 1.65; border-radius: 4px;
+}
+.game1-view #quiz-explain .fx { display: block; font-family: var(--mono); color: #7a3020; margin: 6px 0; }
+.game1-view .quiz-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 14px; font-size: 12px; color: #8a7f66; }
+.game1-view .quiz-foot button {
+  background: var(--ink); color: var(--paper); border: none; border-radius: 8px;
+  padding: 7px 22px; font-family: var(--hand); font-size: 14px;
+}
+
+.game1-view .formula-box {
+  background: #fff; border: 1.5px dashed #8a7f66; border-radius: 8px;
+  padding: 10px 14px; margin: 10px 0; font-family: var(--mono); font-size: 15px;
+  color: #1a3a6b; text-align: center;
+}
+.game1-view #know-text { font-size: 14px; line-height: 1.75; }
+.game1-view #know-title { font-size: 17px; }
+
+/* 新闻报纸卡 */
+.game1-view .newspaper { width: 440px; padding: 26px 30px 18px; }
+.game1-view .newspaper h3 { font-size: 19px; color: #7a3020; border-bottom: 2px solid #4a4032; padding-bottom: 8px; margin-bottom: 10px; }
+.game1-view .newspaper p { font-size: 14.5px; line-height: 1.7; margin-bottom: 8px; }
+.game1-view #event-effect { color: #7a3020; font-weight: 700; }
+.game1-view .newspaper button { float: right; margin-top: 6px; }
+
+/* 错题本 */
+.game1-view #wrongbook-list { max-height: 52vh; overflow-y: auto; }
+.game1-view .wrong-item { border-bottom: 1px dashed #b3a583; padding: 8px 2px; font-size: 13.5px; line-height: 1.6; }
+.game1-view .wrong-item .fx { display: block; color: #7a3020; font-family: var(--mono); font-size: 12.5px; }
+.game1-view .wrong-item .cnt { color: var(--redpen); font-size: 12px; }
+
+/* 结算 */
+.game1-view .final-paper { width: 640px; }
+.game1-view #final-summary { max-height: 55vh; overflow-y: auto; font-size: 14px; line-height: 1.8; }
+.game1-view #final-summary table { width: 100%; border-collapse: collapse; font-family: var(--mono); font-size: 13px; }
+.game1-view #final-summary td, .game1-view #final-summary th { border-bottom: 1px solid #b3a583; padding: 4px 6px; text-align: left; }
+
+/* ---------- 轻提示 ---------- */
+.game1-view #toast-layer { position: fixed; top: 88px; left: 50%; transform: translateX(-50%); z-index: 200; display: flex; flex-direction: column; gap: 6px; align-items: center; }
+.game1-view .toast {
+  background: var(--paper); color: var(--ink); font-family: var(--hand); font-size: 14px;
+  border: 2px solid #4a4032; border-radius: 155px 12px 145px 12px / 12px 145px 12px 155px;
+  padding: 8px 18px; box-shadow: 0 6px 18px rgba(0,0,0,.4);
+  animation: toastIn .25s ease, toastOut .4s ease 2.2s forwards;
+}
+.game1-view .toast.warn { background: #ffe9c9; border-color: #b3781f; }
+@keyframes toastIn  { from { transform: translateY(-14px); opacity: 0; } }
+@keyframes toastOut { to { transform: translateY(-10px); opacity: 0; } }
+
+/* ---------- 滚动条（限定在游戏容器内） ---------- */
+.game1-view ::-webkit-scrollbar { width: 8px; height: 8px; }
+.game1-view ::-webkit-scrollbar-thumb { background: var(--line); border-radius: 4px; }
+.game1-view ::-webkit-scrollbar-track { background: transparent; }
+
+/* =========================================================
+   城市地图内部元素动画（SVG 元素类名由 main.js 控制）
+   ========================================================= */
+.game1-view .smoke { animation: smokeUp 2.6s linear infinite; opacity: 0; transform-origin: center; }
+@keyframes smokeUp {
+  0%   { transform: translate(0, 0) scale(.6); opacity: 0; }
+  20%  { opacity: .75; }
+  100% { transform: translate(-14px, -46px) scale(1.6); opacity: 0; }
+}
+.game1-view .crane-arm { animation: craneSwing 5s ease-in-out infinite alternate; transform-origin: 620px 96px; }
+@keyframes craneSwing { from { transform: rotate(-4deg); } to { transform: rotate(5deg); } }
+.game1-view .sun-halo { animation: sunPulse 4s ease-in-out infinite alternate; transform-origin: 100px 74px; }
+@keyframes sunPulse { from { opacity: .55; } to { opacity: .95; } }
+.game1-view .cloud-drift { animation: cloudMove 26s linear infinite alternate; }
+@keyframes cloudMove { from { transform: translateX(0); } to { transform: translateX(120px); } }
+.game1-view .car-move { animation: carRun 7s linear infinite; }
+@keyframes carRun { from { transform: translateX(-60px); } to { transform: translateX(760px); } }
+.game1-view .blink-win { animation: winBlink 3s steps(2) infinite; }
+@keyframes winBlink { 50% { opacity: .35; } }
+
+/* =========================================================
+   传导演示弹窗（六步链条动画）
+   ========================================================= */
+.game1-view .trans-paper { width: 960px; max-width: 95vw; padding: 22px 26px 14px; }
+.game1-view .trans-paper h3 { font-size: 17px; margin-bottom: 10px; }
+.game1-view #trans-chain {
+  display: flex; align-items: stretch; gap: 5px;
+  overflow-x: auto; padding: 10px 0 12px; min-height: 168px;
+}
+.game1-view .trans-node {
+  flex: 0 0 172px; position: relative;
+  background: #f7ecd2; border: 2px dashed #8a7f66; border-radius: 12px;
+  padding: 10px 10px 8px; opacity: .32; filter: grayscale(.85);
+  transition: all .4s ease;
+}
+.game1-view .trans-node.lit {
+  opacity: 1; filter: none; transform: translateY(-4px);
+  border-style: solid; border-color: #4a4032; background: #fffbe9;
+  box-shadow: 2px 3px 8px rgba(0,0,0,.18);
+}
+.game1-view .tn-idx {
+  position: absolute; top: -10px; left: -8px; width: 22px; height: 22px;
+  background: var(--redpen); color: #fff; border-radius: 50%;
+  font-size: 12px; display: flex; align-items: center; justify-content: center;
+  font-family: var(--mono); box-shadow: 1px 1px 3px rgba(0,0,0,.3);
+}
+.game1-view .tn-title { font-weight: 700; font-size: 14px; margin-bottom: 6px; }
+.game1-view .tn-row { font-size: 12.5px; font-family: var(--mono); margin: 3px 0; color: var(--ink); }
+.game1-view .tn-row .lbl { color: #8a7f66; font-size: 11px; }
+.game1-view .tn-row s { opacity: .5; margin-right: 2px; }
+.game1-view .tn-row b { font-weight: 700; }
+.game1-view .tn-row b.up    { color: #2e7d32; }
+.game1-view .tn-row b.good  { color: #2e7d32; }
+.game1-view .tn-row b.bad   { color: #c0392b; }
+.game1-view .tn-row b.warn  { color: #b3781f; }
+.game1-view .tn-row b.flat  { color: var(--ink); }
+.game1-view .tn-note { font-size: 10.5px; color: #8a7f66; margin-top: 4px; line-height: 1.4; }
+.game1-view .tn-formula {
+  margin-top: 6px; font-size: 10.5px; color: #7a3020; font-family: var(--mono);
+  background: #fff; border: 1px dashed #b3a583; border-radius: 6px;
+  padding: 3px 6px; line-height: 1.5;
+}
+.game1-view .trans-arrow { align-self: center; font-size: 20px; color: #8a7f66; flex: 0 0 auto; }
+.game1-view .trans-foot { display: flex; justify-content: space-between; align-items: center; margin-top: 2px; }
+.game1-view .trans-hint { font-size: 12px; color: #8a7f66; }
+.game1-view .trans-foot button {
+  background: var(--ink); color: var(--paper); border: none; border-radius: 8px;
+  padding: 7px 20px; font-family: var(--hand); font-size: 14px; margin-left: 8px;
+}
+.game1-view .trans-foot button:hover { filter: brightness(1.2); }
+
+/* ---------- 低分辨率降级：单列布局（嵌入站点后由舞台容器滚动） ---------- */
+@media (max-width: 1200px) {
+  .game1-view .game1-stage { overflow: auto; }
+  .game1-view #main-grid { grid-template-columns: 1fr; grid-template-rows: auto; grid-template-areas: "left" "center" "right" "bottom"; }
+  .game1-view #app { height: auto; }
+}

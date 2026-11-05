@@ -1,0 +1,46 @@
+# 一键启动：docker compose up --build
+# 验证：http://localhost:3001（后端同时托管前端 dist）
+# 数据持久化：mysql-data named volume，down && up 数据不丢
+services:
+  mysql:
+    image: mysql:8
+    container_name: islm-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-islm_root_2026}
+      MYSQL_DATABASE: islm_platform
+      TZ: Asia/Shanghai
+    command: --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    volumes:
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-p${MYSQL_ROOT_PASSWORD:-islm_root_2026}"]
+      interval: 5s
+      timeout: 3s
+      retries: 12
+
+  app:
+    build: .
+    container_name: islm-app
+    depends_on:
+      mysql:
+        condition: service_healthy
+    environment:
+      PORT: 3001
+      DB_HOST: mysql
+      DB_PORT: 3306
+      DB_USER: root
+      DB_PASSWORD: ${MYSQL_ROOT_PASSWORD:-islm_root_2026}
+      DB_NAME: islm_platform
+      JWT_SECRET: ${JWT_SECRET:-islm-platform-dev-secret}
+      # 大模型：默认 mock 模式（无 Key 全流程可演示）；填入 ARK_API_KEY 并
+      # LLM_MOCK=false 后自动切换真实豆包调用
+      LLM_MOCK: ${LLM_MOCK:-true}
+      MOCK_LEAK: ${MOCK_LEAK:-false}
+      ARK_API_KEY: ${ARK_API_KEY:-}
+      ARK_MODEL: ${ARK_MODEL:-doubao-1-5-pro-32k-250115}
+      ARK_EMBEDDING_MODEL: ${ARK_EMBEDDING_MODEL:-doubao-embedding-large-text-250515}
+    ports:
+      - "3001:3001"
+
+volumes:
+  mysql-data:
